@@ -6,11 +6,19 @@ model_id = "mistralai/Mistral-7B-Instruct-v0.3"
 
 # Load model without quantization first to test
 print("Loading model...")
+from transformers import BitsAndBytesConfig
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16
+)
+
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
+    quantization_config=bnb_config,
     device_map="auto",
-     load_in_4bit=True,
-    torch_dtype=torch.float16,  # Use float16 for memory efficiency
     trust_remote_code=True
 )
 
@@ -32,6 +40,6 @@ pipe = pipeline(
 
 # Test inference
 print("Running inference...")
-prompt = "Suggest three creative domain names for a vegan food delivery service:"
+prompt = "Suggest 10 creative domain names for a vegan food delivery service:"
 response = pipe(prompt)
 print(response[0]["generated_text"])
